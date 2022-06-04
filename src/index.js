@@ -2,37 +2,74 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-class Square extends React.Component {
-    // adding a constructor to the class to initialize the state;
-    // in JS, always call super when defining the constructor of a subclass
-    // all React component classes that have a constructor should start with a super(props) call
-    constructor(props) {    
+// class Square extends React.Component {
+//     render() {
+//       return (
+//         <button 
+//         // className and onClick are props
+//         className="square" 
+//         onClick={() => this.props.onClick()}>
+//           {/* The line below passes a prop from a parent Board component to a child Square component. */}
+//           {this.props.value}
+//         </button>
+//       );
+//     }
+//   }
+  
+  function Square(props) {
+      return (
+          <button className="square" onClick={props.onClick}>
+              {props.value}
+          </button>
+      )
+  }
+  class Board extends React.Component {
+    // the constructor sets the Board's initial state to
+    // contain an array of 9 nulls corresponding to the 9 squares
+    constructor(props) {
         super(props);
         this.state = {
-            value: null,
+            squares: Array(9).fill(null),
+            xIsNext: true,
         };
     }
-    render() {
+
+    handleClick(i) {
+        const squares = this.state.squares.slice();
+        if (calculateWinner(squares) || squares[i]) {
+            return;
+        }
+        
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        this.setState({
+            squares: squares,
+            xIsNext: !this.state.xIsNext,
+        });
+    }
+
+    renderSquare(i) {
       return (
-        <button 
-        // className and onClick are props
-        className="square" 
-        onClick={() => this.setState({value: 'X'})}>
-          {/* The line below passes a prop from a parent Board component to a child Square component. */}
-          {this.state.value}
-        </button>
+        <Square 
+            value={this.state.squares[i]}
+            onClick={() => this.handleClick(i)}
+        />
       );
     }
-  }
-  
-  class Board extends React.Component {
-    renderSquare(i) {
-      return <Square value={i}/>;
-    }
   
     render() {
-      const status = 'Next player: X';
-  
+    //   const status = 'Next player: ' + 
+    //   (this.state.xIsNext ? 'X' : 'O');
+        const winner = 
+    calculateWinner(this.state.squares);
+        let status;
+        if (winner) {
+            status = 'Winner: ' + winner;
+        }
+        else {
+            status = 'Next player: ' + 
+        (this.state.xIsNext ? 'X' : 'O');
+        
+        }
       return (
         <div>
           <div className="status">{status}</div>
@@ -72,8 +109,28 @@ class Square extends React.Component {
     }
   }
   
+
   // ========================================
   
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(<Game />);
-  
+
+  function calculateWinner(squares) {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return squares[a];
+      }
+    }
+    return null;
+  }
